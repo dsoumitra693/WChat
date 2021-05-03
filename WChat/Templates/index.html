@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+		<title>WChat -- Home</title>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>		
+</head>
+<style>
+* {
+		box-sizing: border-box; 
+		padding: 0;
+		margin: 0;
+}
+body { 
+		background-color: #edeff2; 
+		font-family: "Calibri", "Roboto", sans-serif; 
+		} 
+.chat_window { 
+		position: absolute; 
+		width: calc(100% - 20px); 
+		max-width: 100vw; 
+		height: 90vh; 
+		border-radius: 10px; 
+		background-color: #fff; 
+		left: 50%; 
+		top: 50%; 
+		transform: translateX(-50%) translateY(-50%); 
+		box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15); 
+		background-color: #f8f8f8; 
+		overflow: hidden; 
+		} 
+.top_menu { 
+		background-color: #fff; 
+		width: 100%; 
+		padding: 20px 0 15px; 
+		box-shadow: 0 1px 30px rgba(0, 0, 0, 0.1);
+		position: sticky;
+		top: 0;
+	 } 
+.top_menu .buttons { 
+		margin: 3px 0 0 20px; 
+		position: absolute; 
+		} 
+.top_menu .buttons .button { 
+		width: 56px; 
+		height: 56px; 
+		border-radius: 50%; 
+		display: inline-block;
+	 margin-right: 10px; 
+	 position: relative; 
+	 } 
+.top_menu .buttons .button.close { 
+		background-color: #f5886e; 
+} 
+.top_menu .buttons .button.minimize { 
+		background-color: #fdbf68; 
+		} 
+.top_menu .buttons .button.maximize { 
+		background-color: #a3d063; 
+		} 
+.top_menu .title { 
+		text-align: center; 
+		color: #bcbdc0; 
+		font-size: 50px; 
+		} 
+.messages { 
+		position: relative;
+	 list-style: none;
+	 padding: 20px 10px 0 10px; 
+	 margin: 0; height: 1600px; 
+	 overflow: auto; 
+	 } 
+.messages .message { 
+		clear: both;
+		overflow: hidden; 
+		margin-bottom: 20px;
+		transition: all 0.5s linear; 
+		opacity: 1; 
+		} 
+.messages .message.left .avatar { 
+		background-color: #f5886e; 
+		float: left; 
+		} 
+.messages .message.left .text_wrapper { 
+		background-color: #ffe6cb; 
+		margin-left: 20px; 
+		} 
+.messages .message.left .text_wrapper::after, .messages .message.left .text_wrapper::before { 
+		right: 100%; 
+		border-right-color: #ffe6cb; 
+		} 
+.messages .message.left .text {
+		color: #c48843;
+		} 
+.messages .message.right .avatar { 
+		background-color: #fdbf68; 
+		float: right; 
+		} 
+.messages .message.right .text_wrapper { 
+		background-color: #c7eafc; 
+		margin-right: 20px; 
+		float: right; 
+		} 
+.messages .message.right .text_wrapper::after, .messages .message.right .text_wrapper::before { 
+		left: 100%; 
+		border-left-color: #c7eafc; 
+		} 
+.messages .message.right .text { 
+		color: #45829b;
+} 
+.messages .message.appeared { 
+		opacity: 1; 
+		} 
+.messages .message .avatar { 
+		width: 60px; 
+		height: 60px; 
+		border-radius: 50%; 
+		display: inline-block; 
+		} 
+.messages .message .text_wrapper { 
+		display: inline-block; 
+		padding: 20px; 
+		border-radius: 6px; 
+		width: calc(100% - 85px); 
+		min-width: 100px; 
+		position: relative; 
+		} 
+.messages .message .text_wrapper::after, .messages .message .text_wrapper:before { 
+		top: 18px; 
+		border: solid transparent; 
+		content: " "; 
+		height: 0; 
+		width: 0; 
+		position: absolute; 
+		pointer-events: none; 
+		}
+.messages .message .text_wrapper::after { 
+		border-width: 13px; 
+		margin-top: 0px; 
+		} 
+.messages .message .text_wrapper::before { 
+		border-width: 15px; 
+		margin-top: -2px; 
+		}
+.messages .message .text_wrapper { 
+		font-size: 50px; 
+		font-weight: 300; 
+		} 
+.bottom_wrapper { 
+		position: relative; 
+		width: 100%; 
+		background-color: #fff; 
+		padding: 20px 20px; 
+		position: absolute; 
+		bottom: 0; 
+		} 
+.bottom_wrapper .message_input_wrapper { 
+		display: inline-block; 
+		height: 100px; 
+		border-radius: 25px; 
+		border: 1px solid #bcbdc0; 
+		width: calc(100% - 160px); 
+		position: relative; 
+		padding: 0 20px; 
+		} 
+.bottom_wrapper .message_input_wrapper .message_input { 
+		border: none; 
+		height: 100%; 
+		box-sizing: border-box; 
+		width: calc(100% - 40px); 
+		position: absolute; 
+		outline-width: 0; 
+		color: gray; 
+		font-size: 50px;
+		} 
+.bottom_wrapper .send_message, .send_message .text svg{ 
+		width: 100px; 
+		height: 100px; 
+		display: inline-block; 
+		border-radius: 50%; 
+		background-color: #a3d063; 
+		border: 2px solid #a3d063; 
+		color: #fff; 
+		cursor: pointer; 
+		transition: all 0.2s linear; 
+		text-align: center; 
+		float: right; 
+		text-align: center;
+		position: sticky;
+		top: 0;
+		} 
+.bottom_wrapper .send_message:hover { 
+		color: #a3d063; 
+		background-color: #fff; 
+		} 
+.bottom_wrapper .send_message .text { 
+		font-size: 30px; 
+		font-weight: 300; 
+		display: inline-block; 
+		line-height: 48px; 
+		} 
+.message_template { 
+		display: flex; 
+		}
+</style>
+<body>	
+<div class="chat_window"> 
+		<div class="top_menu"> 
+				<div class="buttons"> 
+						<div class="button close"></div> 
+						<div class="button minimize"></div> 
+						<div class="button maximize"></div> 
+		</div> 
+		<div class="title">WChat</div> 
+		</div> 
+		<ul class="messages"></ul> 
+		<div class="bottom_wrapper clearfix">
+				 <div class="message_input_wrapper"> 
+				 		<input class="message_input" placeholder="Type your message here..." id="mes-input"/> 
+				 	</div> 
+				 	<div class="send_message"> 
+				 			<button class="text"id="btn"type='submit'>
+				 					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"> <path d="M5.921 11.9 1.353 8.62a.719.719 0 0 1 0-1.238L5.921 4.1A.716.716 0 0 1 7 4.719V6c1.5 0 6 0 7 8-2.5-4.5-7-4-7-4v1.281c0 .56-.606.898-1.079.62z"/> </svg>
+				 			</button> 
+				 			</div> 
+				 		</div>
+				 	</div> 
+				 	<div class="message_template"> 
+				 			 
+				</div>
+</div>
+<script>
+const socket = io("http://localhost:8000");
+const mess = document.getElementById('mes-input');
+const btn = document.getElementById('btn');
+const con = document.querySelector('.messages');
+
+
+function render_message(data, pos) {
+		con.innerHTML += `
+				<li class="message ${pos}"> 
+				 					<div class="text_wrapper"> 
+				 							<div class="text">${data.mes}</div>
+				 							<div class="user">${data.name}</div>
+				 							</div> 
+				 			</li>
+		`;
+		console.log(data.name, data.mes)
+}
+
+let name = prompt('Enter your name to join the chat');
+name = name ? name : prompt('Enter your name to join the chat');
+socket.emit('new-user-joined', name)
+socket.on('user-join', user => {
+			
+})
+socket.on('recive', data => {
+		render_message(data, 'left')
+})
+btn.addEventListener('click', () => {
+		socket.emit('send', mess.value);
+	 render_message({mes: mess.value, name: 'You', time: new Date()}, 'right');
+	 mess.value = '';
+})
+
+</script>
+<script>
+</script>
+</body>
+</html>
